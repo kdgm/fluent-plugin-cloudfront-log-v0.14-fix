@@ -28,42 +28,52 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     Fluent::Test::InputTestDriver.new(Fluent::Cloudfront_LogInput).configure(parse_config conf)
   end
 
-  test "configure" do
+  test "create_driver doesn't raise error" do
     assert_nothing_raised { create_driver }
+  end
 
+  test "log_bucket is required" do
     exception = assert_raise(Fluent::ConfigError) {
       conf = DEFAULT_CONFIG.clone
       conf.delete(:log_bucket)
       create_driver(conf)
     }
     assert_equal("'log_bucket' parameter is required", exception.message)
+  end
 
+  test "region is required" do
     exception = assert_raise(Fluent::ConfigError) {
       conf = DEFAULT_CONFIG.clone
       conf.delete(:region)
       create_driver(conf)
     }
     assert_equal("'region' parameter is required", exception.message)
+  end
 
+  test "log_prefix is required" do
     exception = assert_raise(Fluent::ConfigError) {
       conf = DEFAULT_CONFIG.clone
       conf.delete(:log_prefix)
       create_driver(conf)
     }
     assert_equal("'log_prefix' parameter is required", exception.message)
+  end
 
+  test "unspecified moved_log_bucket is set to log_bucket" do
     conf = DEFAULT_CONFIG.clone
     conf.delete(:moved_log_bucket)
     driver = create_driver(conf)
     assert_equal(driver.instance.log_bucket, driver.instance.moved_log_bucket)
+  end
 
+  test "unspecified moved_log_prefix is set to '_moved'" do
     conf = DEFAULT_CONFIG.clone
     conf.delete(:moved_log_prefix)
     driver = create_driver(conf)
     assert_equal('_moved', driver.instance.moved_log_prefix)
   end
 
-  test 'verbose flag' do
+  test 'verbose flag is set to true (boolean)' do
     conf = DEFAULT_CONFIG.clone
     driver = create_driver(conf)
     assert_equal(true, driver.instance.verbose)

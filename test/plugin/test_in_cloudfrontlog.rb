@@ -1,5 +1,6 @@
 require_relative '../helper'
 require 'fluent/test'
+require 'fluent/test/driver/input'
 
 class Cloudfront_LogInputTest < Test::Unit::TestCase
   setup do
@@ -25,7 +26,7 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
   end
 
   def create_driver(conf = DEFAULT_CONFIG)
-    Fluent::Test::InputTestDriver.new(Fluent::Cloudfront_LogInput).configure(parse_config conf)
+    Fluent::Test::Driver::Input.new(Fluent::Cloudfront_LogInput).configure(parse_config conf)
   end
 
   test "create_driver doesn't raise error" do

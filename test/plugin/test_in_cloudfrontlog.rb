@@ -52,12 +52,12 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     assert_equal("'log_prefix' parameter is required", exception.message)
   end
 
-  test "unspecified moved_log_bucket is set to log_bucket" do
+  test "moved_log_bucket is set to log_bucket by default" do
     driver = create_driver(MINIMAL_CONFIG)
     assert_equal(driver.instance.log_bucket, driver.instance.moved_log_bucket)
   end
 
-  test "unspecified moved_log_prefix is set to '_moved'" do
+  test "moved_log_prefix is set to '_moved' by default" do
     driver = create_driver(MINIMAL_CONFIG)
     assert_equal('_moved', driver.instance.moved_log_prefix)
   end

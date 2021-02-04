@@ -65,6 +65,10 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
       assert_equal('_moved', driver.instance.moved_log_prefix)
     end
 
+    test "verbose is set to false" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal(false, driver.instance.verbose)
+    end
   end
 
   test 'verbose flag is set to true (boolean)' do

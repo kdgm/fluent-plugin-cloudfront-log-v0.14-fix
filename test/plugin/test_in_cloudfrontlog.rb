@@ -2,7 +2,7 @@ require_relative '../helper'
 require 'fluent/test'
 
 class Cloudfront_LogInputTest < Test::Unit::TestCase
-  def setup
+  setup do
     Fluent::Test.setup
   end
 
@@ -28,7 +28,7 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     Fluent::Test::InputTestDriver.new(Fluent::Cloudfront_LogInput).configure(parse_config conf)
   end
 
-  def test_configure
+  test "configure" do
     assert_nothing_raised { driver = create_driver }
 
     exception = assert_raise(Fluent::ConfigError) {
@@ -63,7 +63,7 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     assert_equal('_moved', driver.instance.moved_log_prefix)
   end
 
-  def test_verbose_flag
+  test 'verbose flag' do
     conf = DEFAULT_CONFIG.clone
     driver = create_driver(conf)
     assert_equal(true, driver.instance.verbose)

@@ -30,8 +30,8 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   def configure(conf)
     super
 
-    raise Fluent::ConfigError.new unless @log_bucket
     raise Fluent::ConfigError.new unless @region
+    raise Fluent::ConfigError.new unless @log_bucket
     raise Fluent::ConfigError.new unless @log_prefix
 
     @moved_log_bucket = @log_bucket unless @moved_log_bucket

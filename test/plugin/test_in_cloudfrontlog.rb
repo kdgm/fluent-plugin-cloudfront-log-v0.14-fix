@@ -63,4 +63,10 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     assert_equal('_moved', driver.instance.moved_log_prefix)
   end
 
+  def test_verbose_flag
+    conf = DEFAULT_CONFIG.clone
+    driver = create_driver(conf)
+    assert_equal(true, driver.instance.verbose)
+  end
+
 end

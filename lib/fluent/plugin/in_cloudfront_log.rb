@@ -14,7 +14,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   config_param :tag,               :string,  :default => 'cloudfront.access'
   config_param :interval,          :integer, :default => 300
   config_param :delimiter,         :string,  :default => nil
-  config_param :verbose,           :string,  :default => false
+  config_param :verbose,           :bool,    :default => false
   config_param :thread_num,        :integer, :default => 4
   config_param :s3_get_max,        :integer, :default => 200
 

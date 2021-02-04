@@ -65,9 +65,29 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
       assert_equal('_moved', driver.instance.moved_log_prefix)
     end
 
+    test "tag is set to 'cloudfront.access'" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal('cloudfront.access', driver.instance.tag)
+    end
+
     test "verbose is set to false" do
       driver = create_driver(MINIMAL_CONFIG)
       assert_equal(false, driver.instance.verbose)
+    end
+
+    test "interval is set to 300" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal(300, driver.instance.interval)
+    end
+
+    test "thread_num is set to 4" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal(4, driver.instance.thread_num)
+    end
+
+    test "s3_get_max is set to 200" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal(200, driver.instance.s3_get_max)
     end
   end
 

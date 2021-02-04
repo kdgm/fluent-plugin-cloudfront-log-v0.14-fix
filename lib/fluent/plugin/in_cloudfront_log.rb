@@ -7,7 +7,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   config_param :aws_sec_key,       :string,  :default => nil, :secret => true
   config_param :log_bucket,        :string
   config_param :log_prefix,        :string
-  config_param :moved_log_bucket,  :string,  :default => @log_bucket
+  config_param :moved_log_bucket,  :string,  :default => nil
   config_param :moved_log_prefix,  :string,  :default => '_moved'
   config_param :region,            :string
 

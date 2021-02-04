@@ -29,26 +29,26 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
   end
 
   test "configure" do
-    assert_nothing_raised { driver = create_driver }
+    assert_nothing_raised { create_driver }
 
     exception = assert_raise(Fluent::ConfigError) {
       conf = DEFAULT_CONFIG.clone
       conf.delete(:log_bucket)
-      driver = create_driver(conf)
+      create_driver(conf)
     }
     assert_equal("'log_bucket' parameter is required", exception.message)
 
     exception = assert_raise(Fluent::ConfigError) {
       conf = DEFAULT_CONFIG.clone
       conf.delete(:region)
-      driver = create_driver(conf)
+      create_driver(conf)
     }
     assert_equal("'region' parameter is required", exception.message)
 
     exception = assert_raise(Fluent::ConfigError) {
       conf = DEFAULT_CONFIG.clone
       conf.delete(:log_prefix)
-      driver = create_driver(conf)
+      create_driver(conf)
     }
     assert_equal("'log_prefix' parameter is required", exception.message)
 

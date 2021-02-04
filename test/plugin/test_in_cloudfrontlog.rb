@@ -31,25 +31,27 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     assert_nothing_raised { create_driver }
   end
 
-  test "region is required" do
-    exception = assert_raise(Fluent::ConfigError) {
-      create_driver(MINIMAL_CONFIG.gsub(/region.*$/, ''))
-    }
-    assert_equal("'region' parameter is required", exception.message)
-  end
+  sub_test_case "required parameters" do
+    test "region is required" do
+      exception = assert_raise(Fluent::ConfigError) {
+        create_driver(MINIMAL_CONFIG.gsub(/region.*$/, ''))
+      }
+      assert_equal("'region' parameter is required", exception.message)
+    end
 
-  test "log_bucket is required" do
-    exception = assert_raise(Fluent::ConfigError) {
-      create_driver(MINIMAL_CONFIG.gsub(/log_bucket.*$/, ''))
-    }
-    assert_equal("'log_bucket' parameter is required", exception.message)
-  end
+    test "log_bucket is required" do
+      exception = assert_raise(Fluent::ConfigError) {
+        create_driver(MINIMAL_CONFIG.gsub(/log_bucket.*$/, ''))
+      }
+      assert_equal("'log_bucket' parameter is required", exception.message)
+    end
 
-  test "log_prefix is required" do
-    exception = assert_raise(Fluent::ConfigError) {
-      create_driver(MINIMAL_CONFIG.gsub(/log_prefix.*$/, ''))
-    }
-    assert_equal("'log_prefix' parameter is required", exception.message)
+    test "log_prefix is required" do
+      exception = assert_raise(Fluent::ConfigError) {
+        create_driver(MINIMAL_CONFIG.gsub(/log_prefix.*$/, ''))
+      }
+      assert_equal("'log_prefix' parameter is required", exception.message)
+    end
   end
 
   test "moved_log_bucket is set to log_bucket by default" do

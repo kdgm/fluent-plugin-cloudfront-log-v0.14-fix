@@ -91,11 +91,13 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     end
   end
 
-  test 'verbose flag is set to true (boolean)' do
-    driver = create_driver(MINIMAL_CONFIG + %[
-      verbose true
-    ])
-    assert_equal(true, driver.instance.verbose)
+  sub_test_case "set specific values" do
+    test "moved_log_prefix is set to 'my-prefix'" do
+      driver = create_driver(MINIMAL_CONFIG + %[
+        moved_log_prefix 'my-prefix'
+      ])
+      assert_equal('my-prefix', driver.instance.moved_log_prefix)
+    end
   end
 
 end

@@ -54,14 +54,17 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
     end
   end
 
-  test "moved_log_bucket is set to log_bucket by default" do
-    driver = create_driver(MINIMAL_CONFIG)
-    assert_equal(driver.instance.log_bucket, driver.instance.moved_log_bucket)
-  end
+  sub_test_case "default values" do
+    test "moved_log_bucket is set to log_bucket" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal(driver.instance.log_bucket, driver.instance.moved_log_bucket)
+    end
 
-  test "moved_log_prefix is set to '_moved' by default" do
-    driver = create_driver(MINIMAL_CONFIG)
-    assert_equal('_moved', driver.instance.moved_log_prefix)
+    test "moved_log_prefix is set to '_moved'" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal('_moved', driver.instance.moved_log_prefix)
+    end
+
   end
 
   test 'verbose flag is set to true (boolean)' do

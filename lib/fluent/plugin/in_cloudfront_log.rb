@@ -7,7 +7,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   config_param :aws_sec_key,       :string,  :default => nil, :secret => true
   config_param :log_bucket,        :string
   config_param :log_prefix,        :string
-  config_param :moved_log_bucket,  :string,  :default => @log_bucket
+  config_param :moved_log_bucket,  :string,  :default => nil
   config_param :moved_log_prefix,  :string,  :default => '_moved'
   config_param :region,            :string
 
@@ -30,8 +30,8 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   def configure(conf)
     super
 
-    raise Fluent::ConfigError.new unless @log_bucket
     raise Fluent::ConfigError.new unless @region
+    raise Fluent::ConfigError.new unless @log_bucket
     raise Fluent::ConfigError.new unless @log_prefix
 
     @moved_log_bucket = @log_bucket unless @moved_log_bucket

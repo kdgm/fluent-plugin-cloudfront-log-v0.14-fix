@@ -18,6 +18,8 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   config_param :thread_num,        :integer, :default => 4
   config_param :s3_get_max,        :integer, :default => 200
 
+  config_param :parse_date_time,   :bool, :default => true
+
   def initialize
     super
     require 'logger'
@@ -43,6 +45,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
       log.info("@log_prefix: #{@log_prefix}")
       log.info("@moved_log_prefix: #{@moved_log_prefix}")
       log.info("@thread_num: #{@thread_num}")
+      log.info("@parse_date_time: #{@parse_date_time}")
     end
   end
 

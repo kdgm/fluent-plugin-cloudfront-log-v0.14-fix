@@ -145,7 +145,11 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
       line = URI.unescape(line)  #hoge%20fuga   -> hoge fuga
       line = line.split("\t")
       record = Hash[@fields.collect.zip(line)]
-      timestamp = Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
+      if @parse_date_time
+        timestamp = Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
+      else
+        timestamp = Time.now.to_i
+      end
       router.emit(@tag, timestamp, record)
     end
     purge(filename)

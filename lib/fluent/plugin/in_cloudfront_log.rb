@@ -1,5 +1,6 @@
 require 'fluent/input'
 require 'fluent/plugin/enumerable_inflater'
+require 'fileutils'
 
 class Fluent::Cloudfront_LogInput < Fluent::Input
   Fluent::Plugin.register_input('cloudfront_log', self)
@@ -54,6 +55,9 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     super
     log.info("Cloudfront verbose logging enabled") if @verbose
     client
+
+    @tmp_dir = File.join(plugin_root_dir || '/', 'tmp')
+    FileUtils.mkdir_p @tmp_dir
 
     @loop = Coolio::Loop.new
     timer = TimerWatcher.new(@interval, true, log, &method(:input))
@@ -148,18 +152,23 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     return if filename[-1] == '/'  #skip directory/
     return unless filename[-2, 2] == 'gz'  #skip without gz file
 
-    begin
-      access_log_gz = client.get_object(:bucket => @log_bucket, :key => content.key).body
-      access_log = Zlib::GzipReader.new(access_log_gz).read
-      access_log.split("\n").each do |line|
+    tmp_file_name = File.join(@tmp_dir, content.key.split('/').last)
+    File.open(tmp_file_name, File::RDWR|File::CREAT, 0644) do |file|
+      # download file to local file system
+      client.get_object({bucket: @log_bucket, key: content.key}, target: file)
+
+      # inflate and process in chunks
+      file.rewind
+      EnumerableInflater.new(io: file).lines.each do |line|
         process_line(line)
       end
       purge(filename)
     rescue => e
       log.warn("S3 GET client error. #{e.message}")
       return
+    ensure
+      File.delete(file)
     end
-
   end
 
   def input

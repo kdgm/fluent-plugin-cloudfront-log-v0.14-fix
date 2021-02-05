@@ -1,4 +1,6 @@
-require  'fluent/input'
+require 'fluent/input'
+require 'fluent/plugin/enumerable_inflater'
+require 'fileutils'
 
 class Fluent::Cloudfront_LogInput < Fluent::Input
   Fluent::Plugin.register_input('cloudfront_log', self)
@@ -53,6 +55,9 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     super
     log.info("Cloudfront verbose logging enabled") if @verbose
     client
+
+    @tmp_dir = File.join(plugin_root_dir || '/', 'tmp')
+    FileUtils.mkdir_p @tmp_dir
 
     @loop = Coolio::Loop.new
     timer = TimerWatcher.new(@interval, true, log, &method(:input))
@@ -121,6 +126,25 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     end
   end
 
+  def process_line(line)
+    if line[0.1] == '#'
+      parse_header(line)
+      return
+    end
+
+    record = [
+      @fields,
+      CGI.unescape(line).strip.split("\t") # hoge%2520fuga -> hoge%20fuga
+    ].transpose.to_h
+
+    timestamp = if @parse_date_time
+                  Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
+                else
+                  Time.now.to_i
+                end
+
+    router.emit(@tag, timestamp, record)
+  end
 
   def process_content(content)
     filename = content.key.sub(/^#{@log_prefix}\//, "")
@@ -128,33 +152,23 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     return if filename[-1] == '/'  #skip directory/
     return unless filename[-2, 2] == 'gz'  #skip without gz file
 
-    begin
-      access_log_gz = client.get_object(:bucket => @log_bucket, :key => content.key).body
-      access_log = Zlib::GzipReader.new(access_log_gz).read
+    tmp_file_name = File.join(@tmp_dir, content.key.split('/').last)
+    File.open(tmp_file_name, File::RDWR|File::CREAT, 0644) do |file|
+      # download file to local file system
+      client.get_object({bucket: @log_bucket, key: content.key}, target: file)
+
+      # inflate and process in chunks
+      file.rewind
+      EnumerableInflater.new(io: file).lines.each do |line|
+        process_line(line)
+      end
+      purge(filename)
     rescue => e
       log.warn("S3 GET client error. #{e.message}")
       return
+    ensure
+      File.delete(file)
     end
-
-    access_log.split("\n").each do |line|
-      if line[0.1] == '#'
-        parse_header(line)
-        next
-      end
-
-      record = [
-        @fields,
-        CGI.unescape(line).strip.split("\t") # hoge%2520fuga -> hoge%20fuga
-      ].transpose.to_h
-
-      if @parse_date_time
-        timestamp = Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
-      else
-        timestamp = Time.now.to_i
-      end
-      router.emit(@tag, timestamp, record)
-    end
-    purge(filename)
   end
 
   def input

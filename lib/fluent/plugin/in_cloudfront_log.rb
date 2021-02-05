@@ -121,6 +121,24 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     end
   end
 
+  def process_line(line)
+    if line[0.1] == '#'
+      parse_header(line)
+      next
+    end
+
+    record = [
+      @fields,
+      CGI.unescape(line).strip.split("\t") # hoge%2520fuga -> hoge%20fuga
+    ].transpose.to_h
+
+    if @parse_date_time
+      timestamp = Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
+    else
+      timestamp = Time.now.to_i
+    end
+    router.emit(@tag, timestamp, record)
+  end
 
   def process_content(content)
     filename = content.key.sub(/^#{@log_prefix}\//, "")
@@ -137,22 +155,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     end
 
     access_log.split("\n").each do |line|
-      if line[0.1] == '#'
-        parse_header(line)
-        next
-      end
-
-      record = [
-        @fields,
-        CGI.unescape(line).strip.split("\t") # hoge%2520fuga -> hoge%20fuga
-      ].transpose.to_h
-
-      if @parse_date_time
-        timestamp = Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
-      else
-        timestamp = Time.now.to_i
-      end
-      router.emit(@tag, timestamp, record)
+      process_line(line)
     end
     purge(filename)
   end

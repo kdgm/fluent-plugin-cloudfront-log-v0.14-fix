@@ -1,4 +1,5 @@
-require  'fluent/input'
+require 'fluent/input'
+require 'fluent/plugin/enumerable_inflater'
 
 class Fluent::Cloudfront_LogInput < Fluent::Input
   Fluent::Plugin.register_input('cloudfront_log', self)

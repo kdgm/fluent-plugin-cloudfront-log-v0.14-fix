@@ -125,7 +125,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   def process_line(line)
     if line[0.1] == '#'
       parse_header(line)
-      next
+      return
     end
 
     record = [

@@ -150,15 +150,15 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     begin
       access_log_gz = client.get_object(:bucket => @log_bucket, :key => content.key).body
       access_log = Zlib::GzipReader.new(access_log_gz).read
+      access_log.split("\n").each do |line|
+        process_line(line)
+      end
+      purge(filename)
     rescue => e
       log.warn("S3 GET client error. #{e.message}")
       return
     end
 
-    access_log.split("\n").each do |line|
-      process_line(line)
-    end
-    purge(filename)
   end
 
   def input

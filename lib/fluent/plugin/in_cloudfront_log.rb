@@ -141,8 +141,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
         parse_header(line)
         next
       end
-      line = URI.unescape(line)  #hoge%2520fuga -> hoge%20fuga
-      line = URI.unescape(line)  #hoge%20fuga   -> hoge fuga
+      line = CGI.unescape(line)  #hoge%2520fuga -> hoge%20fuga
       line = line.split("\t")
       record = Hash[@fields.collect.zip(line)]
       if @parse_date_time

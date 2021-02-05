@@ -174,7 +174,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   def input
     log.info("CloudFront Begining input going to list S3")
     begin
-      s3_list = client.list_objects(:bucket => @log_bucket, :prefix => @log_prefix , :delimiter => @delimiter, :max_keys => @s3_get_max)
+      s3_list = client.list_objects_v2(:bucket => @log_bucket, :prefix => @log_prefix , :delimiter => @delimiter, :max_keys => @s3_get_max)
     rescue => e
       log.warn("S3 GET list error. #{e.message}")
       return

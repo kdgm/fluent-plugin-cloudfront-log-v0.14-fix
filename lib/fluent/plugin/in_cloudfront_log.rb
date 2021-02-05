@@ -183,7 +183,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     queue = Queue.new
     threads = []
     log.debug("S3 List size: #{s3_list.contents.length}")
-    s3_list.contents.each do |content|
+    s3_list.contents.sort_by(&:last_modified).each do |content|
       queue << content
     end
     # BEGINS THREADS

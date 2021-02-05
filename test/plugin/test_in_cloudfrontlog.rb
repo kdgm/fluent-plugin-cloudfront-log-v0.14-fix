@@ -89,6 +89,11 @@ class Cloudfront_LogInputTest < Test::Unit::TestCase
       driver = create_driver(MINIMAL_CONFIG)
       assert_equal(200, driver.instance.s3_get_max)
     end
+
+    test "parse_date_time true" do
+      driver = create_driver(MINIMAL_CONFIG)
+      assert_equal(true, driver.instance.parse_date_time)
+    end
   end
 
   sub_test_case "set specific values" do

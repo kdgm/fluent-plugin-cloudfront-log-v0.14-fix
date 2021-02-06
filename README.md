@@ -1,11 +1,15 @@
 # Fluent::Plugin::Cloudfront::Log
-This plugin will connect to the S3 bucket that you store your cloudfront logs in. Once the plugin processes them and ships them to FluentD, it moves them to another location(either another bucket or sub directory).
+This plugin will connect to the S3 bucket that you store your cloudfront logs in. Once the plugin processes them and ships them to FluentD, it moves them to another location (either another bucket or sub directory).
 
-This is a fork of https://github.com/kubihie/fluent-plugin-cloudfront-log with a
-fix with regards to fluentd v0.14 error. This is a temporary gem that I would
-publish until PR https://github.com/kubihie/fluent-plugin-cloudfront-log/pull/9
-is merged.
+## Lineage
+This is a fork of [packetloop's v0.14 fix](https://github.com/packetloop/fluent-plugin-cloudfront-log-v0.14-fix)
+which is a fork of the original [kubihie version](https://github.com/kubihie/fluent-plugin-cloudfront-log)
+with contributions from [lenfree's version](https://github.com/lenfree/fluent-plugin-cloudfront-log).
+This fork has optimizations to process hundreds of large CloudFront log files (tens of MB)
+efficiently and with constant memory usage.
 
+I will publish this gem so it can be used in production assuming upstream
+repositories are unmaintained. I would be happy to merge these changes back into [kubihie's version](https://github.com/kubihie/fluent-plugin-cloudfront-log).
 ## Example config
 ```
 <source>
@@ -62,12 +66,16 @@ You shouldn't have to specify delimiter at all but this option is provided and p
 #### verbose
 Turn this on if you'd like to see verbose information about the plugin and how it's processing your files.
 
+### parse_date_time
+Turn this off when you don't want the date and time to be parsed into the timestamp for the record.
+Used when timestamp parsing can be implemented faster downstream. Default is true.
+
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'fluent-plugin-cloudfront-log-v0.14-fix'
+gem 'fluent-plugin-cloudfront-log-optimized'
 ```
 
 And then execute:
@@ -76,7 +84,7 @@ $ bundle
 
 Or install it yourself as:
 
-$ gem install 'fluent-plugin-cloudfront-log-v0.14-fix'
+$ gem install 'fluent-plugin-cloudfront-log-optimized'
 
 ## Development
 
@@ -86,9 +94,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/packetloop/fluent-plugin-cloudfront-log-v0.14-fix.
+Bug reports and pull requests are welcome on GitHub at https://github.com/packetloop/fluent-plugin-cloudfront-log-optimized.
 
 ## Credits
 
 kubihie
-

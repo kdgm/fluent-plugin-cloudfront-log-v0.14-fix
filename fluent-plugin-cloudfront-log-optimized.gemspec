@@ -3,14 +3,14 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
-  spec.name          = "fluent-plugin-cloudfront-log-v0.14-fix"
-  spec.version       = "0.1.1"
-  spec.authors       = ["lenfree"]
-  spec.email         = ["lenfree.yeung@gmail.com"]
+  spec.name          = "fluent-plugin-cloudfront-log-optimized"
+  spec.version       = "0.2.0"
+  spec.authors       = ["kubihee", "lenfree", "kjwierenga"]
+  spec.email         = ["kubihie@gmail.com", "lenfree.yeung@gmail.com", "k.j.wierenga@gmail.com"]
 
-  spec.summary       = %q{AWS CloudFront log input plugin with temporary fix for v0.14. Credit to kubihie.}
-  spec.description   = %q{AWS CloudFront log input plugin for fluentd. This repo is temporary until PR to upstream is addressed.}
-  spec.homepage      = "https://github.com/packetloop/fluent-plugin-cloudfront-log-v0.14-fix"
+  spec.summary       = %q{AWS CloudFront log input plugin optimized for large log files. Credit to kubihie and lenfree.}
+  spec.description   = %q{AWS CloudFront log input plugin for fluentd. Upstream appears to be unmaintained.}
+  spec.homepage      = "https://github.com/kjwierenga/fluent-plugin-cloudfront-log-optimized"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}).map{ |f| File.basename(f) }

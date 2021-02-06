@@ -1,4 +1,6 @@
-require  'fluent/input'
+require 'fluent/input'
+require 'fluent/plugin/enumerable_inflater'
+require 'fileutils'
 
 class Fluent::Cloudfront_LogInput < Fluent::Input
   Fluent::Plugin.register_input('cloudfront_log', self)
@@ -7,16 +9,18 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   config_param :aws_sec_key,       :string,  :default => nil, :secret => true
   config_param :log_bucket,        :string
   config_param :log_prefix,        :string
-  config_param :moved_log_bucket,  :string,  :default => @log_bucket
+  config_param :moved_log_bucket,  :string,  :default => nil
   config_param :moved_log_prefix,  :string,  :default => '_moved'
   config_param :region,            :string
 
   config_param :tag,               :string,  :default => 'cloudfront.access'
   config_param :interval,          :integer, :default => 300
   config_param :delimiter,         :string,  :default => nil
-  config_param :verbose,           :string,  :default => false
+  config_param :verbose,           :bool,    :default => false
   config_param :thread_num,        :integer, :default => 4
   config_param :s3_get_max,        :integer, :default => 200
+
+  config_param :parse_date_time,   :bool, :default => true
 
   def initialize
     super
@@ -30,8 +34,8 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
   def configure(conf)
     super
 
-    raise Fluent::ConfigError.new unless @log_bucket
     raise Fluent::ConfigError.new unless @region
+    raise Fluent::ConfigError.new unless @log_bucket
     raise Fluent::ConfigError.new unless @log_prefix
 
     @moved_log_bucket = @log_bucket unless @moved_log_bucket
@@ -43,6 +47,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
       log.info("@log_prefix: #{@log_prefix}")
       log.info("@moved_log_prefix: #{@moved_log_prefix}")
       log.info("@thread_num: #{@thread_num}")
+      log.info("@parse_date_time: #{@parse_date_time}")
     end
   end
 
@@ -50,6 +55,9 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     super
     log.info("Cloudfront verbose logging enabled") if @verbose
     client
+
+    @tmp_dir = File.join(plugin_root_dir || '/', 'tmp')
+    FileUtils.mkdir_p @tmp_dir
 
     @loop = Coolio::Loop.new
     timer = TimerWatcher.new(@interval, true, log, &method(:input))
@@ -118,6 +126,25 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     end
   end
 
+  def process_line(line)
+    if line[0.1] == '#'
+      parse_header(line)
+      return
+    end
+
+    record = [
+      @fields,
+      CGI.unescape(line).strip.split("\t") # hoge%2520fuga -> hoge%20fuga
+    ].transpose.to_h
+
+    timestamp = if @parse_date_time
+                  Time.iso8601("#{record['date']}T#{record['time']}+00:00").to_i
+                else
+                  Time.now.to_i
+                end
+
+    router.emit(@tag, timestamp, record)
+  end
 
   def process_content(content)
     filename = content.key.sub(/^#{@log_prefix}\//, "")
@@ -125,33 +152,29 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     return if filename[-1] == '/'  #skip directory/
     return unless filename[-2, 2] == 'gz'  #skip without gz file
 
-    begin
-      access_log_gz = client.get_object(:bucket => @log_bucket, :key => content.key).body
-      access_log = Zlib::GzipReader.new(access_log_gz).read
+    tmp_file_name = File.join(@tmp_dir, content.key.split('/').last)
+    File.open(tmp_file_name, File::RDWR|File::CREAT, 0644) do |file|
+      # download file to local file system
+      client.get_object({bucket: @log_bucket, key: content.key}, target: file)
+
+      # inflate and process in chunks
+      file.rewind
+      EnumerableInflater.new(io: file).lines.each do |line|
+        process_line(line)
+      end
+      purge(filename)
     rescue => e
       log.warn("S3 GET client error. #{e.message}")
       return
+    ensure
+      File.delete(file)
     end
-
-    access_log.split("\n").each do |line|
-      if line[0.1] == '#'
-        parse_header(line)
-        next
-      end
-      line = URI.unescape(line)  #hoge%2520fuga -> hoge%20fuga
-      line = URI.unescape(line)  #hoge%20fuga   -> hoge fuga
-      line = line.split("\t")
-      record = Hash[@fields.collect.zip(line)]
-      timestamp = Time.parse("#{record['date']}T#{record['time']}+00:00").to_i
-      router.emit(@tag, timestamp, record)
-    end
-    purge(filename)
   end
 
   def input
     log.info("CloudFront Begining input going to list S3")
     begin
-      s3_list = client.list_objects(:bucket => @log_bucket, :prefix => @log_prefix , :delimiter => @delimiter, :max_keys => @s3_get_max)
+      s3_list = client.list_objects_v2(:bucket => @log_bucket, :prefix => @log_prefix , :delimiter => @delimiter, :max_keys => @s3_get_max)
     rescue => e
       log.warn("S3 GET list error. #{e.message}")
       return
@@ -160,7 +183,7 @@ class Fluent::Cloudfront_LogInput < Fluent::Input
     queue = Queue.new
     threads = []
     log.debug("S3 List size: #{s3_list.contents.length}")
-    s3_list.contents.each do |content|
+    s3_list.contents.sort_by(&:last_modified).each do |content|
       queue << content
     end
     # BEGINS THREADS

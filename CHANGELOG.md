@@ -1,4 +1,4 @@
-## Release 0.2.0
+## Release 0.2.0 (kjwierenga)
 Merge branch 'feature/enh/rename-to-optimized' into develop
 Merge branch 'feature/fix/process-log-files-in-last-modified-order' into develop
 - [fix] process log files in order of ascending last_modified time
@@ -16,4 +16,8 @@ Merge branch 'feature/enh/modernize-tests' into develop
 Merge branch 'feature/fix/verbose-param' into develop
 - [fix] verbose flag; it was set to string causing it to be always enabled
 
+## Release 0.1.1 (packetloop)
+- Packetloop 2019 version
 
+## Release 0.0.5 (kubihie)
+- Original 2016 version
